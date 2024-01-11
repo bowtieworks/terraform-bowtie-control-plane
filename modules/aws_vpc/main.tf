@@ -45,6 +45,7 @@ locals {
 }
 
 data "aws_route53_zone" "org" {
+  count = var.operate_route53 ? 1 : 0
   name         = var.dns_zone_name
   private_zone = false
 }
@@ -104,7 +105,7 @@ resource "aws_security_group" "public" {
 
 resource "aws_route53_record" "endpoint" {
   count = var.operate_route53 ? length(local.flattened-instances) : 0
-  zone_id = data.aws_route53_zone.org.zone_id
+  zone_id = data.aws_route53_zone.org.1.zone_id
   name    = local.flattened-instances[count.index].dns_name
   type    = var.use_nlb_and_asg ? "CNAME" : "A"
   ttl     = "60"
