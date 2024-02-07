@@ -139,7 +139,17 @@ resource "aws_route53_record" "endpoint" {
   records = [var.use_nlb_and_asg ? aws_lb.controller[count.index].dns_name : aws_instance.controller[count.index].public_ip]
 }
 
-data "cloudinit_config" "user_data" {
+resource "terraform_data" "user_data_inputs" {
+  // each required data point for cloud_init should be referenced here
+  input = {
+    sync_psk = var.sync_psk,
+    flattened-instances = local.flattened-instances,
+    entrypoint_string = local.entrypoint_string,
+    bowtie_sso_config_path = var.bowtie_sso_config_path
+  }
+}
+
+resource "cloudinit_config" "user_data" {
   // gzip is suggested to solve the user_data idempotency issue but does not.
   gzip          = true
   base64_encode = true
@@ -227,11 +237,7 @@ resource "aws_instance" "controller" {
     delete_on_termination = "true"
   }
 
-  // put-only user_data is not ideal, but it's better than reaping the resource
-  lifecycle {
-    ignore_changes = [user_data]
-  }
-  user_data                   = data.cloudinit_config.user_data[local.flattened-instances[count.index].name].rendered
+  user_data                   = resource.cloudinit_config.user_data[local.flattened-instances[count.index].name].rendered
   user_data_replace_on_change = false
 
   tags = {
@@ -261,10 +267,7 @@ resource "aws_launch_template" "controller" {
     }
   }
 
-  lifecycle {
-    ignore_changes = [user_data]
-  }
-  user_data = data.cloudinit_config.user_data[local.flattened-instances[count.index].name].rendered
+  user_data = resource.cloudinit_config.user_data[local.flattened-instances[count.index].name].rendered
   block_device_mappings {
     device_name = "/dev/xvda"
 
