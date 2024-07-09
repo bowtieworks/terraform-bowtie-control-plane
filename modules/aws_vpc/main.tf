@@ -194,10 +194,22 @@ data "cloudinit_config" "user_data" {
           path    = "/etc/dex/${basename(var.bowtie_sso_config_path)}"
           content = file(var.bowtie_sso_config_path)
         }] : [],
-        var.bowtie_backupd != null ? [{
+        var.bowtie_backup_strategy == "s3-iam" ? [{
           path    = "/etc/default/backupd"
           content = <<-EOS
-            ${var.bowtie_backupd}
+            REPOSITORY=${var.bowtie_backup.repository}
+            ENCRYPTION_KEY=${var.bowtie_backup.encryption_key}
+            AWS_DEFAULT_REGION=${var.bowtie_backup.s3_region}
+          EOS
+        }] : [],
+        var.bowtie_backup_strategy == "s3-keys" ? [{
+          path    = "/etc/default/backupd"
+          content = <<-EOS
+            REPOSITORY=${var.bowtie_backup.repository}
+            ENCRYPTION_KEY=${var.bowtie_backup.encryption_key}
+            AWS_DEFAULT_REGION=${var.bowtie_backup.s3_region}
+            AWS_SECRET_ACCESS_KEY=${var.bowtie_backup.s3_secret_access_key}
+            AWS_ACCESS_KEY_ID=${var.bowtie_backup.s3_access_key}
           EOS
         }] : [],
         var.bowtie_restore_strategy == "s3-iam" ? [{

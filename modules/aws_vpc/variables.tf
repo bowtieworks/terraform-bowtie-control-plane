@@ -121,7 +121,21 @@ variable update_at {
     }
 }
 
-variable bowtie_restore_strategy {
+variable bowtie_backup {
+    description = "This manages the /etc/restore file"
+    type = object({
+        repository=string,
+        encryption_key=string,
+        s3_region=optional(string),
+        s3_secret_access_key=optional(string),
+        s3_access_key=optional(string),
+    })
+    sensitive = true
+    nullable = true
+    default = null
+}
+
+variable bowtie_backup_strategy {
     description = "null | s3-iam | s3-keys are valid options"
     type = string
     sensitive = false
@@ -129,9 +143,10 @@ variable bowtie_restore_strategy {
     default = null
 }
 
-variable bowtie_backupd {
+variable bowtie_restore_strategy {
+    description = "null | s3-iam | s3-keys are valid options"
     type = string
-    sensitive = true
+    sensitive = false
     nullable = true
     default = null
 }
