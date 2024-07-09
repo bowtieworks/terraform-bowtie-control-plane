@@ -129,6 +129,13 @@ variable bowtie_restore_strategy {
     default = null
 }
 
+variable bowtie_backupd {
+    type = string
+    sensitive = true
+    nullable = true
+    default = null
+}
+
 variable bowtie_restore {
     description = "This manages the /etc/restore file"
     type = object({
